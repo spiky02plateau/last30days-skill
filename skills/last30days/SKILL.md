@@ -244,6 +244,14 @@ End of OUTPUT CONTRACT. The laws above are the contract; everything below is imp
 
 # HOW TO INVOKE THIS SKILL (READ FIRST, FOLLOW EVERY TIME)
 
+**WEB SEARCH ROUTING OVERRIDE (local custom — supersedes every WebSearch instruction below).** For every web search this skill describes — Step 0 WebSearch loading, X-handle resolution, subreddit/news/category resolution, GitHub resolution, vs-mode peer discovery, AND post-engine Step 2 supplements — invoke the `/web-search` skill via the `Skill` tool. Do NOT call `WebSearch`, `mcp__tavily__tavily_search`, `mcp__brave-search__*`, `WebFetch`, or `ToolSearch select:WebSearch` directly.
+
+**Why this overrides Step 0:** the global `~/.claude/CLAUDE.md` rule routes among Tavily MCP, Brave MCP, Jina Reader, and WebFetch based on intent and spreads load across the user's Tavily and Brave quotas. Calling a single backend directly burns one provider's quota and skips the routing logic. The 2026-05-06 Mittelstand-KI run made 11 direct WebSearch calls during resolution and supplements — that is the failure this override prevents.
+
+**How to apply:** wherever this file shows `WebSearch("query")`, instead invoke the `Skill` tool with `skill="web-search"` and pass the search-intent prose as `args`. The /web-search skill returns search results; treat the results identically to how you would treat WebSearch results for counting against the Step 2 supplement budget, citation handling (LAW 1 / LAW 8), and pre-flight resolution. The "load deferred tool" WebSearch step is no longer required — `/web-search` is a skill, not a deferred tool.
+
+---
+
 **LIBRARY SEARCH FAST PATH — this overrides every research/setup step below.** If the user says “search my library for X”, “have I researched X before?”, or otherwise asks to query prior saved research, do not run WebSearch, setup, preflight, or fresh source research. Run:
 
 ```bash
@@ -1535,6 +1543,15 @@ The supplement budget and the Step 0.55 pre-research budget are distinct. Step 0
 - Zero supplements is almost never correct. The social-first engine misses long-form analysis, critic reactions, and news context that shape good synthesis. If you are tempted to skip supplements, run at least 2.
 - Ceiling: 3. Do not fire 5+ "just in case" - that is what pushed runtimes to 9 minutes on earlier validation.
 - Example (Kanye West with 113 engine items): 2-3 supplements covering (1) Billboard/Pitchfork critical reception, (2) Wireless Festival ban news context, (3) optionally a specific claim you want corroborated. Not zero, even though the engine was rich.
+
+**Grounding skip rule (local custom):** If the script output's Sources header
+includes `Web` (the Python grounding source ran and returned results via
+Brave/Exa/Serper), reduce Step 2 to a single supplement instead of 2-3.
+Grounding already searched the web during the research pass — multiple
+additional queries are redundant. Skip Step 2 entirely only when `--quick`
+is also active.
+
+**Web search backend (local custom):** Step 2 supplements go through the `/web-search` skill (per the WEB SEARCH ROUTING OVERRIDE near the top of this file). Do not call Tavily MCP directly, do not call WebSearch directly. The /web-search skill picks the right backend (Tavily / Brave / Jina / WebFetch) and spreads quota. Pass a recency cue in the args (e.g. "last 30 days" or the run's lookback window) so the skill biases recency-ranked backends.
 
 For **ALL modes**, do WebSearch to supplement (or provide all data in web-only mode).
 
