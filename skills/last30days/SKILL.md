@@ -78,6 +78,12 @@ Follow the host's system and developer instructions, applicable tool contracts, 
 
 This is the slash-command skill, not a generic search prompt. Run the installed Python engine for research; WebSearch supplements do not replace it. Never improvise an engine path, skip required resolution/planning, or produce a WebSearch-only report as though the skill ran.
 
+**WEB SEARCH ROUTING OVERRIDE (local custom, supersedes every WebSearch instruction in this skill and its references).** For every web search this skill describes (pre-engine resolution of X handles, subreddits, news, categories, GitHub, comparison and competitor peers, and the post-engine Step 2 supplements), invoke the `/web-search` skill via the `Skill` tool. Do NOT call `WebSearch`, `mcp__tavily__*`, `mcp__brave-search__*`, `WebFetch`, or `ToolSearch select:WebSearch` directly. This holds inside the isolated web search dispatch too: brief the dispatched subagent to run each search through the `/web-search` skill.
+
+**Why:** the operator's `/web-search` skill routes among the configured backends by intent and spreads load across their quotas. Calling one backend directly burns that provider's quota and skips the routing. The 2026-05-06 Mittelstand-KI run made 11 direct WebSearch calls during resolution and supplements; that is the failure this override prevents.
+
+**How to apply:** wherever this skill or a reference shows `WebSearch("query")`, invoke the `Skill` tool with `skill="web-search"` and pass the search intent as `args`. Treat the results exactly as WebSearch results for the Step 2 supplement budget, citation handling (LAW 1 / LAW 8), and pre-flight resolution. No deferred-tool loading step is needed: `/web-search` is a skill, not a deferred tool.
+
 ## Bootstrap and file reads
 
 Bind `SKILL_DIR` to the absolute directory containing the **root SKILL.md actually loaded by the host**. Never bind it to `references/`, the current directory, or a different installation discovered through a path search. `SKILL.md` and `scripts/` are siblings. Retain `SKILL_DIR` across shell calls; when calls do not share variables, begin each command that uses it with a quoted assignment of that same absolute path.

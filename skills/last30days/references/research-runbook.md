@@ -695,6 +695,15 @@ If host web search is unavailable, skip this step. Otherwise, after the script f
 - Zero supplements is almost never correct. The social-first engine misses long-form analysis, critic reactions, and news context that shape good synthesis. If you are tempted to skip supplements, run at least 2.
 - Ceiling: 3. Do not fire 5+ "just in case" - that is what pushed runtimes to 9 minutes on earlier validation.
 
+**Grounding skip rule (local custom):** If the script output's Sources header
+includes `Web` (the Python grounding source ran and returned results via
+Brave/Exa/Serper), reduce Step 2 to a single supplement instead of 2-3.
+Grounding already searched the web during the research pass, so multiple
+additional queries are redundant. Skip Step 2 entirely only when `--quick`
+is also active.
+
+**Web search backend (local custom):** Step 2 supplements go through the `/web-search` skill (per the WEB SEARCH ROUTING OVERRIDE in SKILL.md). Do not call Tavily MCP directly, do not call WebSearch directly. The /web-search skill picks the backend and spreads quota. Pass a recency cue in the args (e.g. "last 30 days" or the run's lookback window) so the skill biases recency-ranked backends.
+
 For every research mode on a host with web search, do supplements after the engine. Web search alone does not replace the engine.
 
 Choose search queries based on QUERY_TYPE:
